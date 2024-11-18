@@ -63,8 +63,8 @@ def main():
     for path in tqdm(list_all_files('speaker_transcriptions')[:2], ncols=75):
         with open(path, 'rt') as file:
             text = file.read()
-        # text = okt.morphs(text)
-        # text = ' '.join(morphs)
+        text = okt.morphs(text)
+        text = ' '.join(text)
         all_morphs.append(text)
 
     stop_words = get_stop_words()
@@ -73,7 +73,7 @@ def main():
     print("extracting keywords...")
     all_keywords = []
     for morphs in tqdm(all_morphs, ncols=75):
-        keywords = kw_model.extract_keywords(morphs, keyphrase_ngram_range=(1, 2), stop_words=stop_words, top_n=100)
+        keywords = kw_model.extract_keywords(morphs, keyphrase_ngram_range=(1, 1), stop_words=stop_words, top_n=1000)
         all_keywords.append(keywords)
 
     # 키워드 병합
