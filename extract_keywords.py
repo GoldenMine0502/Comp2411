@@ -60,7 +60,7 @@ def main():
     # 모든 문서에 대한 형태소 분석
     print("morphing...")
     all_morphs = []
-    for path in tqdm(list_all_files('speaker_transcriptions')[:5], ncols=75):
+    for path in tqdm(list_all_files('speaker_transcriptions')[:2], ncols=75):
         with open(path, 'rt') as file:
             text = file.read()
         # text = okt.morphs(text)
@@ -84,10 +84,8 @@ def main():
 
     # 중요도 기준으로 정렬
     sorted_keywords = sorted(merged_keywords.items(), key=lambda x: x[1], reverse=True)
-
-    # 키워드의 공백 제거
-    keywords = list(map(lambda x: x[0], sorted_keywords))
-    keywords = [text.replace(' ', '') for text in keywords]
+    keywords = list(map(lambda x: f'{x[0]}, {x[1]}', sorted_keywords))
+    # keywords = [text.replace(' ', '') for text in keywords]
 
     # result.txt 파일에 개행 단위로 저장
     with open("result.txt", "wt", encoding="utf-8") as file:
