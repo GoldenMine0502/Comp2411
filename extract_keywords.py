@@ -5,6 +5,8 @@ from tqdm import tqdm
 from transformers import BertModel
 from collections import defaultdict
 
+from tests import word_embedding_test
+
 
 def list_all_files(directory):
     return [str(file) for file in Path(directory).rglob('*') if file.is_file()]
@@ -32,7 +34,9 @@ def get_stop_words():
         "ㄴ", "는", "ㄹ", "던",
 
         # 명사형 어미
-        "ㅁ", "기"
+        "ㅁ", "기",
+
+        "으로써", "로써", "로서", "으로서",
     ]
 
     stop_words = []
@@ -51,7 +55,7 @@ def main():
     kw_model = KeyBERT(model=model)
 
     # Okt 형태소 분석기 초기화
-    okt = Okt()
+    # okt = Okt()
 
     # 모든 문서에 대한 형태소 분석
     print("morphing...")
@@ -59,9 +63,12 @@ def main():
     for path in tqdm(list_all_files('speaker_transcriptions'), ncols=75):
         with open(path, 'rt') as file:
             text = file.read()
-        text = okt.morphs(text)
+        # text = okt.morphs(text)
+        text = word_embedding_test.filter_text(text)
         text = ' '.join(text)
         all_morphs.append(text)
+
+    all_morphs = ['\n'.join(all_morphs)]
 
     stop_words = get_stop_words()
 
@@ -74,7 +81,7 @@ def main():
                 morphs,
                 keyphrase_ngram_range=ngram_range,
                 stop_words=stop_words,
-                top_n=1000
+                top_n=50
             )
             all_keywords.append(keywords)
 
@@ -87,21 +94,26 @@ def main():
         # 중요도 기준으로 정렬
         sorted_keywords = sorted(merged_keywords.items(), key=lambda x: x[1], reverse=True)
 
-        # 1만개로 제한
-        sorted_keywords = sorted_keywords[:10000]
+        # 상위 50%
+        top50 = len(sorted_keywords) // 100 * 50
+        top70 = len(sorted_keywords) // 100 * 70
 
         # 키워드 문자열로 변환
-        keywords = list(map(lambda x: f'{x[0]}, {x[1]}', sorted_keywords))
+        keywords = list(map(lambda x: f'{x[0]}, {x[1]}', sorted_keywords[:top50]))
+        keywords2 = list(map(lambda x: f'{x[0]}, {x[1]}', sorted_keywords[top50:top70]))
 
         # keywords = [text.replace(' ', '') for text in keywords]
 
         # result.txt 파일에 개행 단위로 저장
-        with open(output_file, 'wt', encoding='utf-8') as file:
+        with open(f'{output_file}_top0.txt', 'wt', encoding='utf-8') as file:
             file.write('\n'.join(keywords))  # 문자열 리스트를 개행 단위로 연결 후 파일에 쓰기
 
-    extract_keywords((1, 1), 'result_11.txt')
-    extract_keywords((1, 2), 'result_12.txt')
-    extract_keywords((2, 2), 'result_22.txt')
+        with open(f'{output_file}_top50.txt', 'wt', encoding='utf-8') as file:
+            file.write('\n'.join(keywords2))  # 문자열 리스트를 개행 단위로 연결 후 파일에 쓰기
+
+    extract_keywords((1, 1), 'result_11')
+    # extract_keywords((1, 2), 'result_12_okt.txt')
+    # extract_keywords((2, 2), 'result_22_okt.txt')
 
 
 if __name__ == '__main__':

@@ -11,8 +11,8 @@ def filter_text(text):
     def filter_sw(string):
         split = string.split("/")
 
-        # if len(split) == 1:
-        #     return '#' not in text
+        if len(split) == 1:
+            return text
 
         # return True
         if len(split) > 2:
@@ -30,10 +30,31 @@ def filter_text(text):
         return False
 
     # text = self.clean_text(text)
+    text = text.replace("/", " ")
+
+    text = (text.replace("#@이름#", "#")
+            .replace(" # ", "#")
+            .replace("##", "#")
+            .replace('즺', '짖')
+            .replace('즵', '집')
+            .replace('즫', '짇')
+            .replace('즥', '직')
+            .replace('즷', '짓')
+            .replace('즴', '짐')
+            .replace('즨', '진')
+            .replace('즹', '징')
+            .replace('즬', '질')
+            .replace('즿', '짛')
+            .replace('즼', '짘')
+            .replace('즽', '짙')
+            .replace('즻', '짗')
+            .replace('즾', '짚')
+            .replace('즤', '지')
+            )
 
     res = komoran.get_plain_text(text).split(' ')
 
-    res = list(filter(filter_sw, res))  # 필터링
+    # res = list(filter(filter_sw, res))  # 필터링
     res = list(map(lambda x: x.split('/')[0], res))  # 대한민국/NNP 같은 단어가 있으면 슬래시 뒤 문자 떼버림
 
     return res
@@ -74,7 +95,9 @@ def get_kobert_embeddings(texts, model_name='skt/kobert-base-v1', top_n=5):
 
 
 # 테스트 데이터
-texts = ["자연어 처리는 정말 재미있는 분야입니다.", "KoBERT를 활용한 임베딩 추출 방법을 배워봅시다.", "자연어 처리는 재밌습니다.", "처리 재밌다", "처리"]
-keywords = get_kobert_embeddings(texts)
+if __name__ == '__main__':
+    texts = ["자연어 처리는 정말 재미있는 분야입니다.", "KoBERT를 활용한 임베딩 추출 방법을 배워봅시다.", "자연어 처리는 재밌습니다.", "처리 재밌다", "처리"]
+    keywords = get_kobert_embeddings(texts)
 
-print(keywords)
+    print(keywords)
+    print(filter_text(texts[0]))
