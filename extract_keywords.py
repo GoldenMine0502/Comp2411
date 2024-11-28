@@ -1,11 +1,66 @@
 from pathlib import Path
+
+from PyKomoran import Komoran
 from keybert import KeyBERT
 from konlpy.tag import Okt
 from tqdm import tqdm
 from transformers import BertModel
 from collections import defaultdict
 
-from tests import word_embedding_test
+komoran = Komoran("EXP")  # OR EXP
+
+
+def filter_text(text):
+    def filter_sw(string):
+        split = string.split("/")
+
+        if len(split) == 1:
+            return text
+
+        # return True
+        if len(split) > 2:
+            word = '/'.join(split[:-1])
+            wtype = split[-1]
+        else:
+            word, wtype = split
+
+        if wtype == 'NNP' or wtype == 'NNG':
+            return True
+
+        if wtype == 'VV' or wtype == 'VA':
+            return True
+
+        return False
+
+    # text = self.clean_text(text)
+    text = text.replace("/", " ")
+
+    text = (text.replace("#@이름#", "#")
+            .replace(" # ", "#")
+            .replace("##", "#")
+            .replace('즺', '짖')
+            .replace('즵', '집')
+            .replace('즫', '짇')
+            .replace('즥', '직')
+            .replace('즷', '짓')
+            .replace('즴', '짐')
+            .replace('즨', '진')
+            .replace('즹', '징')
+            .replace('즬', '질')
+            .replace('즿', '짛')
+            .replace('즼', '짘')
+            .replace('즽', '짙')
+            .replace('즻', '짗')
+            .replace('즾', '짚')
+            .replace('즤', '지')
+            )
+
+    res = komoran.get_plain_text(text).split(' ')
+
+    # res = list(filter(filter_sw, res))  # 필터링
+    res = list(map(lambda x: x.split('/')[0], res))  # 대한민국/NNP 같은 단어가 있으면 슬래시 뒤 문자 떼버림
+
+    return res
 
 
 def list_all_files(directory):
@@ -64,11 +119,11 @@ def main():
         with open(path, 'rt') as file:
             text = file.read()
         # text = okt.morphs(text)
-        text = word_embedding_test.filter_text(text)
+        text = filter_text(text)
         text = ' '.join(text)
         all_morphs.append(text)
 
-    all_morphs = ['\n'.join(all_morphs)]
+    # all_morphs = ['\n'.join(all_morphs)]
 
     stop_words = get_stop_words()
 
